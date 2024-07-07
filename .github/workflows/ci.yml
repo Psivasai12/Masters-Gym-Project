@@ -42,9 +42,11 @@ jobs:
       run: sudo apt-get install -y openssh-client
 
     - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      run: |
+        echo "${{ secrets.EC2_SSH_KEY }}" > my_ssh_key.pem
+        chmod 600 my_ssh_key.pem
+        eval $(ssh-agent -s)
+        ssh-add my_ssh_key.pem
 
     - name: Deploy to EC2
       env:
