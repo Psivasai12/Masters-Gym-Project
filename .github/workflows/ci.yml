@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,24 +38,24 @@ jobs:
     - name: Push Docker image to Docker Hub
       run: docker push ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
 
-  # deploy:
-  #   needs: build
-  #   runs-on: ubuntu-latest
+    - name: Install SSH client
+      run: sudo apt-get install -y openssh-client
 
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v2
+    - name: Add SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-  #   - name: Deploy to EC2
-  #     run: |
-  #       ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_INSTANCE_HOST }} << 'EOF'
-  #         docker pull ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
-  #         docker stop my-react-app || true
-  #         docker rm my-react-app || true
-  #         docker run -d -p 80:3000 --name my-react-app --env REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
-  #       EOF
-  #     env:
-  #       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  #       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  #       EC2_INSTANCE_HOST: ${{ secrets.EC2_INSTANCE_HOST }}
-  #       EC2_USER: ${{ secrets.EC2_USER }}
+    - name: Deploy to EC2
+      env:
+        IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
+        EC2_USER: ${{ secrets.EC2_USER }}
+        EC2_HOST: ${{ secrets.EC2_HOST }}
+      run: |
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker pull $IMAGE_NAME
+          docker stop my-react-app || true
+          docker rm my-react-app || true
+          docker run -d -p 80:80 --name my-react-app $IMAGE_NAME
+        EOF
