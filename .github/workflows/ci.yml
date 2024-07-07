@@ -43,7 +43,7 @@ jobs:
 
     - name: Add SSH key
       run: |
-        echo "${{ secrets.EC2_SSH_KEY_B64 }}" | base64 --decode > my_ssh_key.pem
+        echo "${{ secrets.EC2_SSH_KEY }}" > my_ssh_key.pem
         chmod 600 my_ssh_key.pem
         eval $(ssh-agent -s)
         ssh-add my_ssh_key.pem
@@ -54,7 +54,7 @@ jobs:
         EC2_USER: ${{ secrets.EC2_USER }}
         EC2_HOST: ${{ secrets.EC2_HOST }}
       run: |
-        ssh -i my_ssh_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker pull $IMAGE_NAME
           docker stop my-react-app || true
