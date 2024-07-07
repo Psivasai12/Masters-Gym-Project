@@ -59,4 +59,3 @@ jobs:
           docker rm my-react-app || true
           docker run -d -p 80:80 --name my-react-app $IMAGE_NAME
         EOF
-        
