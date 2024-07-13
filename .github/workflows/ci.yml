@@ -18,11 +18,19 @@ jobs:
       with:
         node-version: '14'
 
+    - name: Cache Node.js modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
     - name: Create .env file
       run: echo "REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }}" > .env
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Build the React app
       run: npm run build
@@ -38,3 +46,28 @@ jobs:
     - name: Push Docker image to Docker Hub
       run: docker push ${{ secrets.DOCKER_USERNAME }}/gym:latest
 
+    - name: Deploy to EC2
+      env:
+        EC2_HOST: ${{ secrets.EC2_HOST }}
+        EC2_USER: ${{ secrets.EC2_USER }}
+        EC2_KEY: ${{ secrets.EC2_KEY }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        REACT_APP_RAPID_API_KEY: ${{ secrets.REACT_APP_RAPID_API_KEY }}  # Add this line
+      run: |
+        echo "${{ secrets.EC2_KEY }}" > ec2_key.pem
+        chmod 600 ec2_key.pem
+        
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+          # Pull the latest Docker image
+          docker pull $DOCKER_USERNAME/gym:latest
+    
+          # Stop and remove existing container if it exists
+          if [ "$(docker ps -q -f name=gym)" ]; then
+            docker stop gym
+            docker rm gym
+          fi
+    
+          # Run the new container with the environment variable
+          docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} $DOCKER_USERNAME/gym:latest
+        EOF
+    
