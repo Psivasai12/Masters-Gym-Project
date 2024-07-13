@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Node.js
       uses: actions/setup-node@v2
@@ -33,31 +33,7 @@ jobs:
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
     - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest .
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/gym-project:latest .
 
     - name: Push Docker image to Docker Hub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
-
-    - name: Install SSH client
-      run: sudo apt-get install -y openssh-client
-
-    - name: Add SSH key
-      run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > my_ssh_key.pem
-        chmod 600 my_ssh_key.pem
-        eval $(ssh-agent -s)
-        ssh-add my_ssh_key.pem
-
-    - name: Deploy to EC2
-      env:
-        IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/my-react-app:latest
-        EC2_USER: ${{ secrets.EC2_USER }}
-        EC2_HOST: ${{ secrets.EC2_HOST }}
-      run: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker pull $IMAGE_NAME
-          docker stop my-react-app || true
-          docker rm my-react-app || true
-          docker run -d -p 80:80 --name my-react-app $IMAGE_NAME
-        EOF
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/gym-project:latest
