@@ -10,8 +10,12 @@ jobs:
 
     build:
         runs-on: self-hosted
-
         steps:
+        - name: Free up disk space
+          run: |
+           sudo docker system prune -af
+           sudo docker volume prune -f
+        
         - name: Log in to Docker Hub
           run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
