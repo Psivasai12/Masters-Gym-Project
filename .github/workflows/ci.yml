@@ -68,5 +68,5 @@ jobs:
           fi
     
           # Run the new container with the environment variable
-          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} $DOCKER_USERNAME/gym:latest
+          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} $${{ secrets.DCKER_USERNAME }}/gym:latest
         EOF
