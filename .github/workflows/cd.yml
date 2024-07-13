@@ -20,19 +20,19 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Pull Docker image
-        run: sudo docker pull ${{ secrets.DOCKER_USERNAME }}/gym-project:latest
+        run: sudo docker pull ${{ secrets.DOCKER_USERNAME }}/gym:latest
 
       - name: List Docker images
         run: sudo docker images
 
       - name: Stop and remove existing container
-        run: sudo docker rm -f gym-project || true
+        run: sudo docker rm -f gym || true
 
       - name: Run Docker container
         run: |
-          sudo docker run -d -p 3000:3000 --name gym-project \
+          sudo docker run -d -p 3000:3000 --name gym \
           -e REACT_APP_RAPID_API_KEY="${{ secrets.REACT_APP_RAPID_API_KEY }}" \
-          ${{ secrets.DOCKER_USERNAME }}/gym-project:latest
+          ${{ secrets.DOCKER_USERNAME }}/gym:latest
 
       - name: Update Nginx configuration
         run: |
