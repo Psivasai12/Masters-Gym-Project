@@ -59,14 +59,14 @@ jobs:
         
         ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
           # Pull the latest Docker image
-          docker pull $DOCKER_USERNAME/gym:latest
+          sudo docker pull $DOCKER_USERNAME/gym:latest
     
           # Stop and remove existing container if it exists
-          if [ "$(docker ps -q -f name=gym)" ]; then
-            docker stop gym
-            docker rm gym
+          if [ "$(sudo docker ps -q -f name=gym)" ]; then
+            sudo docker stop gym
+            sudo docker rm gym
           fi
     
           # Run the new container with the environment variable
-          docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} $DOCKER_USERNAME/gym:latest
+          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY=${{ secrets.REACT_APP_RAPID_API_KEY }} $DOCKER_USERNAME/gym:latest
         EOF
