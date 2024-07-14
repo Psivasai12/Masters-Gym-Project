@@ -46,30 +46,30 @@ jobs:
     - name: Push Docker image to Docker Hub
       run: docker push ${{ secrets.DOCKER_USERNAME }}/gym:latest
 
-    - name: Deploy to EC2
-      env:
-        EC2_HOST: ${{ secrets.EC2_HOST }}
-        EC2_USER: ${{ secrets.EC2_USER }}
-        EC2_KEY: ${{ secrets.EC2_KEY }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        REACT_APP_RAPID_API_KEY: "c6b0302970msh134b668f4641ae5p1e5c7ejsn37ad79a476f2"  # API key replaced with X's
-      run: |
-        echo "${{ secrets.EC2_KEY }}" > ec2_key.pem
-        chmod 600 ec2_key.pem
+    # - name: Deploy to EC2
+    #   env:
+    #     EC2_HOST: ${{ secrets.EC2_HOST }}
+    #     EC2_USER: ${{ secrets.EC2_USER }}
+    #     EC2_KEY: ${{ secrets.EC2_KEY }}
+    #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    #     REACT_APP_RAPID_API_KEY: "c6b0302970msh134b668f4641ae5p1e5c7ejsn37ad79a476f2"  # API key replaced with X's
+    #   run: |
+    #     echo "${{ secrets.EC2_KEY }}" > ec2_key.pem
+    #     chmod 600 ec2_key.pem
         
-        ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-          # Pull the latest Docker image
-          sudo docker pull $DOCKER_USERNAME/gym:latest
+    #     ssh -o StrictHostKeyChecking=no -i ec2_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+    #       # Pull the latest Docker image
+    #       sudo docker pull $DOCKER_USERNAME/gym:latest
     
-          # Stop and remove existing container if it exists
-          if [ "$(sudo docker ps -q -f name=gym)" ]; then
-            sudo docker stop gym
-            sudo docker rm gym
-          fi
+    #       # Stop and remove existing container if it exists
+    #       if [ "$(sudo docker ps -q -f name=gym)" ]; then
+    #         sudo docker stop gym
+    #         sudo docker rm gym
+    #       fi
     
-          # Run the new container with the environment variable
-          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY="c6b0302970msh134b668f4641ae5p1e5c7ejsn37ad79a476f2" "${{ secrets.DOCKER_USERNAME }}/gym:latest"
-        EOF
+    #       # Run the new container with the environment variable
+    #       sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY="c6b0302970msh134b668f4641ae5p1e5c7ejsn37ad79a476f2" "${{ secrets.DOCKER_USERNAME }}/gym:latest"
+    #     EOF
 
 
     # - name: Deploy to Azure B1s
