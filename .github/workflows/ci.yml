@@ -52,7 +52,7 @@ jobs:
         EC2_USER: ${{ secrets.EC2_USER }}
         EC2_KEY: ${{ secrets.EC2_KEY }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        REACT_APP_RAPID_API_KEY: ${{ secrets.REACT_APP_RAPID_API_KEY }}  # Add this line
+        REACT_APP_RAPID_API_KEY: ${{ secrets.REACT_APP_RAPID_API_KEY }}
       run: |
         echo "${{ secrets.EC2_KEY }}" > ec2_key.pem
         chmod 600 ec2_key.pem
@@ -68,5 +68,30 @@ jobs:
           fi
     
           # Run the new container with the environment variable
-          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY="${{ secrets.REACT_APP_RAPID_API_KEY }}" "${{ secrets.DOCKER_USERNAME }}/gym:latest"
+          sudo docker run -d --name gym -p 3000:3000 -e REACT_APP_RAPID_API_KEY="${{ secrets.REACT_APP_RAPID_API_KEY }}" "$DOCKER_USERNAME/gym:latest"
+        EOF
+
+    - name: Deploy to Azure B1s
+      env:
+        AZURE_VM_IP: ${{ secrets.AZURE_VM_IP }}
+        AZURE_VM_USERNAME: ${{ secrets.AZURE_VM_USERNAME }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        REACT_APP_RAPID_API_KEY: ${{ secrets.REACT_APP_RAPID_API_KEY }}
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > azure_key.pem
+        chmod 600 azure_key.pem
+        
+        ssh -o StrictHostKeyChecking=no -i azure_key.pem $AZURE_VM_USERNAME@$AZURE_VM_IP << 'EOF'
+          # Pull the latest Docker image
+          sudo docker pull $DOCKER_USERNAME/gym:latest
+
+          # Stop and remove existing container if it exists
+          if [ "$(sudo docker ps -q -f name=gym)" ]; then
+            sudo docker stop gym
+            sudo docker rm gym
+          fi
+
+          # Run the new container with the environment variable
+          sudo docker run -d --name gym -p 80:3000 -e REACT_APP_RAPID_API_KEY="${{ secrets.REACT_APP_RAPID_API_KEY }}" "$DOCKER_USERNAME/gym:latest"
         EOF
