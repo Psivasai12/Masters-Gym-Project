@@ -10,6 +10,4 @@ const Footer = () => (
     <Typography variant="h5" sx={{ fontSize: { lg: '28px', xs: '20px' } }} mt="41px" textAlign="center" pb="40px">Gym videos on your finger tips</Typography>
   </Box>
 );
-
-
 export default Footer;
